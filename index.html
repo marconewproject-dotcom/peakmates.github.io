@@ -5,33 +5,108 @@
   <title>Peakmates</title>
   <style>
     body {
-      margin: 0;
       font-family: Arial;
       background: #0f172a;
       color: white;
-      text-align: center;
+      margin: 0;
     }
-    .hero {
-      padding: 100px 20px;
+    header {
+      padding: 20px;
+      text-align: center;
+      background: #020617;
+    }
+    .container {
+      padding: 20px;
+    }
+    input, textarea {
+      width: 100%;
+      margin: 5px 0;
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
     }
     button {
-      padding: 12px 20px;
-      border: none;
+      padding: 10px;
+      margin-top: 10px;
       background: #22c55e;
-      color: black;
-      font-weight: bold;
+      border: none;
+      border-radius: 6px;
       cursor: pointer;
-      border-radius: 8px;
+    }
+    .event {
+      background: #1e293b;
+      padding: 15px;
+      margin-top: 15px;
+      border-radius: 10px;
     }
   </style>
 </head>
+
 <body>
 
-  <div class="hero">
-    <h1>🚀 Peakmates</h1>
-    <p>Trova il tuo partner di crescita</p>
-    <button onclick="alert('Coming soon!')">Scopri di più</button>
-  </div>
+<header>
+  <h1>🏔️ Peakmates</h1>
+  <p>Community per vivere la montagna insieme</p>
+</header>
+
+<div class="container">
+
+  <h2>Crea evento</h2>
+
+  <input id="title" placeholder="Nome evento">
+  <input id="date" placeholder="Data">
+  <input id="participants" placeholder="Numero max partecipanti">
+  <textarea id="desc" placeholder="Descrizione"></textarea>
+
+  <button onclick="createEvent()">Crea evento</button>
+
+  <h2>Eventi</h2>
+  <div id="events"></div>
+
+</div>
+
+<script>
+let events = JSON.parse(localStorage.getItem("events")) || [];
+
+function renderEvents() {
+  const container = document.getElementById("events");
+  container.innerHTML = "";
+
+  events.forEach((e, index) => {
+    container.innerHTML += `
+      <div class="event">
+        <h3>${e.title}</h3>
+        <p><b>Data:</b> ${e.date}</p>
+        <p><b>Posti:</b> ${e.participants}</p>
+        <p>${e.desc}</p>
+        <button onclick="deleteEvent(${index})">Elimina</button>
+      </div>
+    `;
+  });
+}
+
+function createEvent() {
+  const event = {
+    title: document.getElementById("title").value,
+    date: document.getElementById("date").value,
+    participants: document.getElementById("participants").value,
+    desc: document.getElementById("desc").value
+  };
+
+  events.push(event);
+  localStorage.setItem("events", JSON.stringify(events));
+
+  renderEvents();
+}
+
+function deleteEvent(index) {
+  events.splice(index, 1);
+  localStorage.setItem("events", JSON.stringify(events));
+  renderEvents();
+}
+
+renderEvents();
+</script>
 
 </body>
 </html>
