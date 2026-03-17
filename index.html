@@ -1,111 +1,188 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Peakmates</title>
-  <style>
-    body {
-      font-family: Arial;
-      background: #0f172a;
-      color: white;
-      margin: 0;
-    }
-    header {
-      padding: 20px;
-      text-align: center;
-      background: #020617;
-    }
-    .container {
-      padding: 20px;
-    }
-    input, textarea {
-      width: 100%;
-      margin: 5px 0;
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-    }
-    button {
-      padding: 10px;
-      margin-top: 10px;
-      background: #22c55e;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .event {
-      background: #1e293b;
-      padding: 15px;
-      margin-top: 15px;
-      border-radius: 10px;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Peakmates</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: 'Arial';
+  background: linear-gradient(#0f172a, #020617);
+  color: white;
+}
+
+header {
+  padding: 20px;
+  text-align: center;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  padding: 20px;
+  max-width: 800px;
+  margin: auto;
+}
+
+.card {
+  background: rgba(255,255,255,0.05);
+  padding: 15px;
+  margin-top: 15px;
+  border-radius: 12px;
+  backdrop-filter: blur(8px);
+}
+
+input, select, textarea {
+  width: 100%;
+  margin: 5px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+button {
+  padding: 10px;
+  background: #22c55e;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.hero {
+  text-align: center;
+  padding: 60px 20px;
+}
+</style>
+
 </head>
 
 <body>
 
 <header>
-  <h1>🏔️ Peakmates</h1>
-  <p>Community per vivere la montagna insieme</p>
+<h1>🏔️ Peakmates</h1>
+<p>Vivi la montagna insieme</p>
 </header>
 
 <div class="container">
 
-  <h2>Crea evento</h2>
-
-  <input id="title" placeholder="Nome evento">
-  <input id="date" placeholder="Data">
-  <input id="participants" placeholder="Numero max partecipanti">
-  <textarea id="desc" placeholder="Descrizione"></textarea>
-
-  <button onclick="createEvent()">Crea evento</button>
-
-  <h2>Eventi</h2>
-  <div id="events"></div>
-
+<div id="loginBox" class="card">
+<h2>Login</h2>
+<input id="username" placeholder="Nome">
+<select id="gender">
+<option value="M">Maschio</option>
+<option value="F">Femmina</option>
+</select>
+<button onclick="login()">Entra</button>
 </div>
 
+<div id="app" style="display:none">
+
+<div class="hero">
+<h2>Benvenuto in Peakmates</h2>
+<p>Trova il tuo gruppo per vivere la montagna</p>
+</div>
+
+<div class="card">
+<h2>Crea evento</h2>
+
+<input id="title" placeholder="Nome evento">
+<input id="date" placeholder="Data">
+<input id="place" placeholder="Luogo">
+<select id="difficulty">
+<option>Facile</option>
+<option>Medio</option>
+<option>Difficile</option>
+</select>
+<input id="participants" placeholder="Numero max">
+<textarea id="gear" placeholder="Attrezzatura"></textarea>
+
+<button onclick="createEvent()">Crea evento</button>
+</div>
+
+<h2>Eventi</h2>
+<div id="events"></div>
+
+</div>
+</div>
+
+<!-- FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
 <script>
-let events = JSON.parse(localStorage.getItem("events")) || [];
+/* INCOLLA QUI CONFIG FIREBASE */
+const firebaseConfig = {
+  apiKey: "PASTE",
+  authDomain: "PASTE",
+  projectId: "PASTE"
+};
 
-function renderEvents() {
-  const container = document.getElementById("events");
-  container.innerHTML = "";
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
 
-  events.forEach((e, index) => {
-    container.innerHTML += `
-      <div class="event">
-        <h3>${e.title}</h3>
-        <p><b>Data:</b> ${e.date}</p>
-        <p><b>Posti:</b> ${e.participants}</p>
-        <p>${e.desc}</p>
-        <button onclick="deleteEvent(${index})">Elimina</button>
-      </div>
-    `;
+let user = null;
+
+/* LOGIN */
+function login() {
+  user = {
+    name: document.getElementById("username").value,
+    gender: document.getElementById("gender").value
+  };
+
+  document.getElementById("loginBox").style.display = "none";
+  document.getElementById("app").style.display = "block";
+}
+
+/* CREA EVENTO */
+function createEvent() {
+  db.collection("events").add({
+    title: title.value,
+    date: date.value,
+    place: place.value,
+    difficulty: difficulty.value,
+    max: participants.value,
+    gear: gear.value,
+    people: []
   });
 }
 
-function createEvent() {
-  const event = {
-    title: document.getElementById("title").value,
-    date: document.getElementById("date").value,
-    participants: document.getElementById("participants").value,
-    desc: document.getElementById("desc").value
-  };
+/* CARICA EVENTI */
+db.collection("events").onSnapshot(snapshot => {
+  const container = document.getElementById("events");
+  container.innerHTML = "";
 
-  events.push(event);
-  localStorage.setItem("events", JSON.stringify(events));
+  snapshot.forEach(doc => {
+    const e = doc.data();
 
-  renderEvents();
+    container.innerHTML += `
+    <div class="card">
+      <h3>${e.title}</h3>
+      <p>${e.place} - ${e.date}</p>
+      <p>Difficoltà: ${e.difficulty}</p>
+      <p>Attrezzatura: ${e.gear}</p>
+      <p>Partecipanti: ${e.people.length}/${e.max}</p>
+
+      <button onclick="joinEvent('${doc.id}', ${e.max}, ${JSON.stringify(e.people)})">
+        Partecipa
+      </button>
+
+      <div>${e.people.map(p => p.name).join(", ")}</div>
+    </div>
+    `;
+  });
+});
+
+/* JOIN EVENT */
+function joinEvent(id, max, people) {
+  if (people.length >= max) return alert("Posti finiti");
+
+  people.push(user);
+
+  db.collection("events").doc(id).update({
+    people: people
+  });
 }
-
-function deleteEvent(index) {
-  events.splice(index, 1);
-  localStorage.setItem("events", JSON.stringify(events));
-  renderEvents();
-}
-
-renderEvents();
 </script>
 
 </body>
