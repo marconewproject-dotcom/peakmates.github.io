@@ -16,24 +16,23 @@ body {
 
 /* HEADER */
 header {
-  padding: 25px;
+  padding: 20px;
   text-align: center;
   background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
 }
 
+/* HERO */
 .hero {
-  padding: 60px 20px;
+  padding: 80px 20px;
   text-align: center;
+  background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470');
+  background-size: cover;
+  background-position: center;
 }
 
 .hero h1 {
-  font-size: 40px;
-  margin-bottom: 10px;
-}
-
-.hero p {
-  opacity: 0.8;
+  font-size: 42px;
 }
 
 /* CONTAINER */
@@ -51,11 +50,7 @@ header {
   margin-top: 18px;
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  transition: 0.3s;
-}
-
-.card:hover {
-  transform: translateY(-4px);
+  animation: fadeUp 0.6s ease;
 }
 
 /* INPUT */
@@ -69,31 +64,35 @@ input, select, textarea {
 
 /* BUTTON */
 button {
-  padding: 10px 14px;
+  padding: 10px;
   background: #22c55e;
   border: none;
   border-radius: 10px;
-  font-weight: bold;
   cursor: pointer;
+  transition: 0.2s;
 }
 
 button:hover {
+  transform: scale(1.05);
   background: #16a34a;
 }
 
 /* BADGE */
 .badge {
-  display: inline-block;
   padding: 4px 8px;
   border-radius: 6px;
   font-size: 12px;
-  margin-top: 5px;
 }
 
-.facile { background: #16a34a; }
-.medio { background: #eab308; }
-.difficile { background: #dc2626; }
+.facile { background: green; }
+.medio { background: orange; }
+.difficile { background: red; }
 
+/* ANIMAZIONE */
+@keyframes fadeUp {
+  from {opacity:0; transform:translateY(20px);}
+  to {opacity:1; transform:translateY(0);}
+}
 </style>
 </head>
 
@@ -105,32 +104,38 @@ button:hover {
 
 <div class="hero">
   <h1>Vivi la montagna. Insieme.</h1>
-  <p>Bivacchi • Trekking • Ferrate • Ghiacciai • Scalate</p>
+  <p>Trekking • Bivacchi • Ferrate • Scalate</p>
 </div>
 
 <div class="container">
 
-<!-- ADMIN PANEL -->
+<!-- LOGIN -->
 <div class="card">
-  <h3>👑 Crea evento (admin)</h3>
-
-  <input id="title" placeholder="Nome evento">
-  <input id="date" placeholder="Data">
-  <input id="place" placeholder="Luogo">
-
-  <select id="difficulty">
-    <option value="facile">Facile</option>
-    <option value="medio">Medio</option>
-    <option value="difficile">Difficile</option>
-  </select>
-
-  <input id="participants" placeholder="Numero max partecipanti">
-  <textarea id="gear" placeholder="Attrezzatura"></textarea>
-
-  <button onclick="createEvent()">Crea evento</button>
+<h3>Accedi</h3>
+<input id="username" placeholder="Nome">
+<button onclick="login()">Entra</button>
 </div>
 
-<!-- EVENTI -->
+<!-- ADMIN -->
+<div class="card" id="adminPanel" style="display:none">
+<h3>👑 Crea evento</h3>
+
+<input id="title" placeholder="Nome evento">
+<input id="date" placeholder="Data">
+<input id="place" placeholder="Luogo">
+
+<select id="difficulty">
+<option value="facile">Facile</option>
+<option value="medio">Medio</option>
+<option value="difficile">Difficile</option>
+</select>
+
+<input id="participants" placeholder="Numero max">
+<textarea id="gear" placeholder="Attrezzatura"></textarea>
+
+<button onclick="createEvent()">Crea evento</button>
+</div>
+
 <h2>📅 Eventi</h2>
 <div id="events"></div>
 
@@ -139,6 +144,7 @@ button:hover {
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
 
 <script>
 
@@ -153,10 +159,42 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.firestore();
+const auth = firebase.auth();
+
+/* ADMIN UID (INSERISCI DOPO) */
+const ADMIN_UID = "INSERISCI_QUI_UID";
+
+/* UTENTE */
+let currentUser = null;
+let username = "";
+
+/* LOGIN ANONIMO AUTOMATICO */
+auth.signInAnonymously();
+
+/* CONTROLLO UTENTE */
+auth.onAuthStateChanged(user => {
+  currentUser = user;
+
+  if(user && user.uid === ADMIN_UID){
+    document.getElementById("adminPanel").style.display = "block";
+  }
+});
+
+/* LOGIN NOME */
+function login(){
+  username = document.getElementById("username").value;
+  alert("Benvenuto " + username);
+}
 
 /* CREA EVENTO */
-function createEvent() {
+function createEvent(){
+  if(currentUser.uid !== ADMIN_UID){
+    alert("Non autorizzato");
+    return;
+  }
+
   db.collection("events").add({
     title: title.value,
     date: date.value,
@@ -187,23 +225,22 @@ db.collection("events").onSnapshot(snapshot => {
       </span>
 
       <p>🎒 ${e.gear}</p>
-      <p>👥 ${e.people.length} / ${e.max}</p>
+      <p>👥 ${e.people.length}/${e.max}</p>
 
-      <input placeholder="Il tuo nome" id="name-${doc.id}">
+      <input placeholder="Nome" id="name-${doc.id}">
       <button onclick="joinEvent('${doc.id}', ${e.max})">
         Partecipa
       </button>
 
-      <p><b>Partecipanti:</b><br>
-      ${e.people.map(p => p).join("<br>")}</p>
+      <p>${e.people.join(", ")}</p>
     </div>
     `;
   });
 });
 
-/* JOIN EVENT */
-function joinEvent(id, max) {
-  const name = document.getElementById(`name-${id}`).value;
+/* PARTECIPA */
+function joinEvent(id, max){
+  const name = document.getElementById(`name-${id}`).value || username || "Anonimo";
 
   db.collection("events").doc(id).get().then(doc => {
     let data = doc.data();
