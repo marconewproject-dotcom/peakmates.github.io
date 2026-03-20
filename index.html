@@ -9,119 +9,158 @@
 
 <style>
 body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(to bottom, #052e16, #0f172a);
-  color: #f1f5f9;
+  margin:0;
+  font-family:'Inter', sans-serif;
+  background:#0f172a;
+  color:white;
 }
 
-header {
-  padding: 20px;
-  text-align: center;
-  background: rgba(0,0,0,0.4);
+/* NAVBAR */
+.navbar {
+  position:fixed;
+  bottom:0;
+  width:100%;
+  display:flex;
+  background:#020617;
 }
 
-.hero {
-  padding: 80px 20px;
-  text-align: center;
-  background-image: url('https://images.unsplash.com/photo-1501785888041-af3ef285b470');
-  background-size: cover;
-  background-position: center;
+.navbar button {
+  flex:1;
+  padding:15px;
+  background:none;
+  border:none;
+  color:white;
 }
 
-.container {
-  max-width: 900px;
-  margin: auto;
-  padding: 20px;
+/* PAGE */
+.page {
+  display:none;
+  padding:20px;
+  padding-bottom:90px;
 }
 
+.active { display:block; }
+
+/* CARD */
 .card {
-  background: rgba(255,255,255,0.06);
-  padding: 18px;
-  margin-top: 18px;
-  border-radius: 16px;
-  animation: fadeUp 0.5s ease;
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  margin-top:15px;
 }
 
-input, select, textarea {
-  width: 100%;
-  margin: 6px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
+/* INPUT */
+input, textarea, select {
+  width:100%;
+  padding:8px;
+  margin-top:5px;
+  border-radius:8px;
+  border:none;
 }
 
+/* BUTTON */
 button {
-  padding: 10px;
-  background: #22c55e;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
+  background:#22c55e;
+  border:none;
+  padding:10px;
+  border-radius:8px;
+  margin-top:5px;
 }
 
-button:hover {
-  transform: scale(1.05);
+.badge {
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
 }
 
-.badge { padding:4px 8px; border-radius:6px; }
-.facile { background:green; }
-.medio { background:orange; }
-.difficile { background:red; }
-
-@keyframes fadeUp {
-  from {opacity:0; transform:translateY(20px);}
-  to {opacity:1; transform:translateY(0);}
-}
 </style>
 </head>
 
 <body>
 
-<header>
-<h2>🏔️ Peakmates</h2>
-</header>
-
-<div class="hero">
-<h1>Vivi la montagna insieme</h1>
+<!-- MAPPA -->
+<div id="mappa" class="page active">
+<h2>🗺️ Mappa</h2>
+<div id="map" style="height:400px;"></div>
 </div>
 
-<div id="map" style="height:300px;"></div>
+<!-- EVENTI -->
+<div id="eventi" class="page">
 
-<div class="container">
+<h2>📅 Eventi</h2>
 
-<div class="card">
-<h3>Login</h3>
-<input id="username" placeholder="Nome">
-<button onclick="login()">Entra</button>
-</div>
-
-<div class="card" id="adminPanel" style="display:none">
+<div id="adminPanel" class="card" style="display:none">
 <h3>👑 Crea evento</h3>
 
 <input id="title" placeholder="Nome evento">
 <input id="date" placeholder="Data">
 <input id="place" placeholder="Luogo">
+<input id="meeting" placeholder="Punto di ritrovo">
 
 <select id="difficulty">
-<option value="facile">Facile</option>
-<option value="medio">Medio</option>
-<option value="difficile">Difficile</option>
+<option>Principiante (facile)</option>
+<option>Base</option>
+<option>Intermedio</option>
+<option>Avanzato</option>
+<option>Esperto</option>
+<option>Esperto con attrezzatura</option>
 </select>
 
-<input id="participants" placeholder="Numero max">
-<textarea id="gear" placeholder="Attrezzatura"></textarea>
+<select id="activity">
+<option>Trekking</option>
+<option>Bivacco</option>
+<option>Ferrata</option>
+<option>Scalata</option>
+<option>Ghiacciaio</option>
+<option>Passeggiata chill</option>
+</select>
 
-<input id="lat" placeholder="Latitudine">
-<input id="lng" placeholder="Longitudine">
+<select id="duration">
+<option>Mezza giornata</option>
+<option>1 giorno</option>
+<option>2 giorni</option>
+<option>Più giorni</option>
+</select>
+
+<select id="groupType">
+<option>Gruppo aperto</option>
+<option>Numero chiuso</option>
+<option>Solo membri esperti</option>
+</select>
+
+<input id="participants" placeholder="Numero max partecipanti">
+
+<textarea id="gear" placeholder="Attrezzatura richiesta"></textarea>
+<textarea id="notes" placeholder="Note (facoltativo)"></textarea>
+
+<p>📍 Seleziona posizione nella mappa</p>
+<input id="lat" placeholder="Latitudine" readonly>
+<input id="lng" placeholder="Longitudine" readonly>
 
 <button onclick="createEvent()">Crea evento</button>
 </div>
 
-<h2>Eventi</h2>
 <div id="events"></div>
-
 </div>
 
+<!-- PROFILO -->
+<div id="profilo" class="page">
+<h2>👤 Profilo</h2>
+
+<input id="username" placeholder="Nome">
+<button onclick="login()">Salva</button>
+
+<p id="welcome"></p>
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+<button onclick="showPage('mappa')">Mappa</button>
+<button onclick="showPage('eventi')">Eventi</button>
+<button onclick="showPage('profilo')">Profilo</button>
+</div>
+
+<!-- SCRIPT -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
@@ -129,15 +168,13 @@ button:hover {
 
 <script>
 const firebaseConfig = {
-  apiKey: "AIzaSyDwIspMkTPdAdMFQxLx_XxPJ8v6aD-vdZg",
+  apiKey: "AIzaSy...",
   authDomain: "peakmatesproject.firebaseapp.com",
-  projectId: "peakmatesproject",
-  storageBucket: "peakmatesproject.firebasestorage.app",
-  messagingSenderId: "618363119140",
-  appId: "1:618363119140:web:e9df3486167407e1af9ab1"
+  projectId: "peakmatesproject"
 };
 
 firebase.initializeApp(firebaseConfig);
+
 const db = firebase.firestore();
 const auth = firebase.auth();
 
@@ -146,27 +183,38 @@ const ADMIN_UID = "INSERISCI_QUI_UID";
 let currentUser = null;
 let username = "";
 
-/* LOGIN ANONIMO */
+/* LOGIN */
+function login(){
+  username = document.getElementById("username").value;
+  document.getElementById("welcome").innerText = "Ciao " + username;
+}
+
+/* AUTH */
 auth.signInAnonymously();
 
 auth.onAuthStateChanged(user => {
   currentUser = user;
-
   if(user && user.uid === ADMIN_UID){
     document.getElementById("adminPanel").style.display = "block";
   }
 });
 
-/* LOGIN NOME */
-function login(){
-  username = document.getElementById("username").value;
-  alert("Benvenuto " + username);
+/* NAV */
+function showPage(p){
+  document.querySelectorAll(".page").forEach(el=>el.classList.remove("active"));
+  document.getElementById(p).classList.add("active");
 }
 
 /* MAPPA */
 let map = L.map('map').setView([45.9, 9.4], 8);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+/* CLICK MAPPA */
+map.on('click', function(e){
+  lat.value = e.latlng.lat;
+  lng.value = e.latlng.lng;
+});
 
 /* CREA EVENTO */
 function createEvent(){
@@ -179,19 +227,23 @@ function createEvent(){
     title: title.value,
     date: date.value,
     place: place.value,
+    meeting: meeting.value,
     difficulty: difficulty.value,
+    activity: activity.value,
+    duration: duration.value,
+    groupType: groupType.value,
     max: participants.value,
     gear: gear.value,
+    notes: notes.value,
     lat: parseFloat(lat.value),
     lng: parseFloat(lng.value),
     people: []
   });
 }
 
-/* CARICA EVENTI */
+/* EVENTI */
 db.collection("events").onSnapshot(snapshot => {
-  const container = document.getElementById("events");
-  container.innerHTML = "";
+  events.innerHTML = "";
 
   snapshot.forEach(doc => {
     const e = doc.data();
@@ -200,40 +252,42 @@ db.collection("events").onSnapshot(snapshot => {
       L.marker([e.lat, e.lng]).addTo(map).bindPopup(e.title);
     }
 
-    container.innerHTML += `
+    events.innerHTML += `
     <div class="card">
       <h3>${e.title}</h3>
-      <p>${e.place} - ${e.date}</p>
-      <span class="badge ${e.difficulty}">${e.difficulty}</span>
-      <p>${e.gear}</p>
-      <p>${e.people.length}/${e.max}</p>
+      <p>📍 ${e.place}</p>
+      <p>🧭 Ritrovo: ${e.meeting}</p>
+      <p>📅 ${e.date}</p>
+      <p>🏔️ ${e.activity}</p>
+      <p>📊 ${e.difficulty}</p>
+      <p>⏱️ ${e.duration}</p>
+      <p>👥 ${e.groupType}</p>
+      <p>🎒 ${e.gear}</p>
+      <p>📝 ${e.notes || "-"}</p>
+      <p>👤 ${e.people.length}/${e.max}</p>
 
       <input id="name-${doc.id}" placeholder="Nome">
       <button onclick="joinEvent('${doc.id}', ${e.max})">Partecipa</button>
 
-      <div>${e.people.join(", ")}</div>
-
       <h4>Chat</h4>
-      <input id="msg-${doc.id}" placeholder="Messaggio">
+      <input id="msg-${doc.id}">
       <button onclick="sendMessage('${doc.id}')">Invia</button>
       <div id="chat-${doc.id}"></div>
     </div>
     `;
 
-    db.collection("events")
-      .doc(doc.id)
-      .collection("chat")
-      .orderBy("time")
-      .onSnapshot(chatSnap => {
-        const chatBox = document.getElementById(`chat-${doc.id}`);
-        if(!chatBox) return;
-        chatBox.innerHTML = "";
+    db.collection("events").doc(doc.id).collection("chat")
+    .orderBy("time")
+    .onSnapshot(chatSnap => {
+      const box = document.getElementById(`chat-${doc.id}`);
+      if(!box) return;
 
-        chatSnap.forEach(msg => {
-          const m = msg.data();
-          chatBox.innerHTML += `<p><b>${m.user}:</b> ${m.text}</p>`;
-        });
+      box.innerHTML = "";
+      chatSnap.forEach(m=>{
+        let d = m.data();
+        box.innerHTML += `<p><b>${d.user}:</b> ${d.text}</p>`;
       });
+    });
 
   });
 });
@@ -242,34 +296,31 @@ db.collection("events").onSnapshot(snapshot => {
 function joinEvent(id, max){
   const name = document.getElementById(`name-${id}`).value || username || "Anonimo";
 
-  db.collection("events").doc(id).get().then(doc => {
-    let data = doc.data();
+  db.collection("events").doc(id).get().then(doc=>{
+    let d = doc.data();
 
-    if(data.people.length >= max){
+    if(d.people.length >= max){
       alert("Posti finiti");
       return;
     }
 
-    data.people.push(name);
+    d.people.push(name);
 
     db.collection("events").doc(id).update({
-      people: data.people
+      people: d.people
     });
   });
 }
 
 /* CHAT */
-function sendMessage(eventId){
-  const text = document.getElementById(`msg-${eventId}`).value;
+function sendMessage(id){
+  const text = document.getElementById(`msg-${id}`).value;
 
-  db.collection("events")
-    .doc(eventId)
-    .collection("chat")
-    .add({
-      text: text,
-      user: username || "Anonimo",
-      time: Date.now()
-    });
+  db.collection("events").doc(id).collection("chat").add({
+    text: text,
+    user: username || "Anonimo",
+    time: Date.now()
+  });
 }
 </script>
 
