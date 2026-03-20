@@ -4,106 +4,136 @@
 <meta charset="UTF-8">
 <title>Peakmates</title>
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
 body {
   margin: 0;
-  font-family: 'Arial';
-  background: linear-gradient(#0f172a, #020617);
-  color: white;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom, #052e16, #0f172a);
+  color: #f1f5f9;
 }
 
+/* HEADER */
 header {
-  padding: 20px;
+  padding: 25px;
   text-align: center;
-  background: rgba(0,0,0,0.3);
-  backdrop-filter: blur(10px);
-}
-
-.container {
-  padding: 20px;
-  max-width: 800px;
-  margin: auto;
-}
-
-.card {
-  background: rgba(255,255,255,0.05);
-  padding: 15px;
-  margin-top: 15px;
-  border-radius: 12px;
-  backdrop-filter: blur(8px);
-}
-
-input, select, textarea {
-  width: 100%;
-  margin: 5px 0;
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-}
-
-button {
-  padding: 10px;
-  background: #22c55e;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
 }
 
 .hero {
-  text-align: center;
   padding: 60px 20px;
+  text-align: center;
 }
-</style>
 
+.hero h1 {
+  font-size: 40px;
+  margin-bottom: 10px;
+}
+
+.hero p {
+  opacity: 0.8;
+}
+
+/* CONTAINER */
+.container {
+  max-width: 900px;
+  margin: auto;
+  padding: 20px;
+}
+
+/* CARD */
+.card {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  padding: 18px;
+  margin-top: 18px;
+  border-radius: 16px;
+  backdrop-filter: blur(10px);
+  transition: 0.3s;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+/* INPUT */
+input, select, textarea {
+  width: 100%;
+  margin: 6px 0;
+  padding: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+/* BUTTON */
+button {
+  padding: 10px 14px;
+  background: #22c55e;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #16a34a;
+}
+
+/* BADGE */
+.badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.facile { background: #16a34a; }
+.medio { background: #eab308; }
+.difficile { background: #dc2626; }
+
+</style>
 </head>
 
 <body>
 
 <header>
-<h1>🏔️ Peakmates</h1>
-<p>Vivi la montagna insieme</p>
+  <h2>🏔️ Peakmates</h2>
 </header>
+
+<div class="hero">
+  <h1>Vivi la montagna. Insieme.</h1>
+  <p>Bivacchi • Trekking • Ferrate • Ghiacciai • Scalate</p>
+</div>
 
 <div class="container">
 
-<div id="loginBox" class="card">
-<h2>Login</h2>
-<input id="username" placeholder="Nome">
-<select id="gender">
-<option value="M">Maschio</option>
-<option value="F">Femmina</option>
-</select>
-<button onclick="login()">Entra</button>
-</div>
-
-<div id="app" style="display:none">
-
-<div class="hero">
-<h2>Benvenuto in Peakmates</h2>
-<p>Trova il tuo gruppo per vivere la montagna</p>
-</div>
-
+<!-- ADMIN PANEL -->
 <div class="card">
-<h2>Crea evento</h2>
+  <h3>👑 Crea evento (admin)</h3>
 
-<input id="title" placeholder="Nome evento">
-<input id="date" placeholder="Data">
-<input id="place" placeholder="Luogo">
-<select id="difficulty">
-<option>Facile</option>
-<option>Medio</option>
-<option>Difficile</option>
-</select>
-<input id="participants" placeholder="Numero max">
-<textarea id="gear" placeholder="Attrezzatura"></textarea>
+  <input id="title" placeholder="Nome evento">
+  <input id="date" placeholder="Data">
+  <input id="place" placeholder="Luogo">
 
-<button onclick="createEvent()">Crea evento</button>
+  <select id="difficulty">
+    <option value="facile">Facile</option>
+    <option value="medio">Medio</option>
+    <option value="difficile">Difficile</option>
+  </select>
+
+  <input id="participants" placeholder="Numero max partecipanti">
+  <textarea id="gear" placeholder="Attrezzatura"></textarea>
+
+  <button onclick="createEvent()">Crea evento</button>
 </div>
 
-<h2>Eventi</h2>
+<!-- EVENTI -->
+<h2>📅 Eventi</h2>
 <div id="events"></div>
 
-</div>
 </div>
 
 <!-- FIREBASE -->
@@ -111,31 +141,19 @@ button {
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 
 <script>
-/* INCOLLA QUI CONFIG FIREBASE */
+
+/* CONFIG FIREBASE */
 const firebaseConfig = {
-    apiKey: "AIzaSyDwIspMkTPdAdMFQxLx_XxPJ8v6aD-vdZg",
-    authDomain: "peakmatesproject.firebaseapp.com",
-    projectId: "peakmatesproject",
-    storageBucket: "peakmatesproject.firebasestorage.app",
-    messagingSenderId: "618363119140",
-    appId: "1:618363119140:web:e9df3486167407e1af9ab1"
-  };
+  apiKey: "AIzaSyDwIspMkTPdAdMFQxLx_XxPJ8v6aD-vdZg",
+  authDomain: "peakmatesproject.firebaseapp.com",
+  projectId: "peakmatesproject",
+  storageBucket: "peakmatesproject.firebasestorage.app",
+  messagingSenderId: "618363119140",
+  appId: "1:618363119140:web:e9df3486167407e1af9ab1"
+};
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-
-let user = null;
-
-/* LOGIN */
-function login() {
-  user = {
-    name: document.getElementById("username").value,
-    gender: document.getElementById("gender").value
-  };
-
-  document.getElementById("loginBox").style.display = "none";
-  document.getElementById("app").style.display = "block";
-}
 
 /* CREA EVENTO */
 function createEvent() {
@@ -161,31 +179,48 @@ db.collection("events").onSnapshot(snapshot => {
     container.innerHTML += `
     <div class="card">
       <h3>${e.title}</h3>
-      <p>${e.place} - ${e.date}</p>
-      <p>Difficoltà: ${e.difficulty}</p>
-      <p>Attrezzatura: ${e.gear}</p>
-      <p>Partecipanti: ${e.people.length}/${e.max}</p>
+      <p>📍 ${e.place}</p>
+      <p>📅 ${e.date}</p>
 
-      <button onclick="joinEvent('${doc.id}', ${e.max}, ${JSON.stringify(e.people)})">
+      <span class="badge ${e.difficulty}">
+        ${e.difficulty.toUpperCase()}
+      </span>
+
+      <p>🎒 ${e.gear}</p>
+      <p>👥 ${e.people.length} / ${e.max}</p>
+
+      <input placeholder="Il tuo nome" id="name-${doc.id}">
+      <button onclick="joinEvent('${doc.id}', ${e.max})">
         Partecipa
       </button>
 
-      <div>${e.people.map(p => p.name).join(", ")}</div>
+      <p><b>Partecipanti:</b><br>
+      ${e.people.map(p => p).join("<br>")}</p>
     </div>
     `;
   });
 });
 
 /* JOIN EVENT */
-function joinEvent(id, max, people) {
-  if (people.length >= max) return alert("Posti finiti");
+function joinEvent(id, max) {
+  const name = document.getElementById(`name-${id}`).value;
 
-  people.push(user);
+  db.collection("events").doc(id).get().then(doc => {
+    let data = doc.data();
 
-  db.collection("events").doc(id).update({
-    people: people
+    if(data.people.length >= max){
+      alert("Posti finiti");
+      return;
+    }
+
+    data.people.push(name);
+
+    db.collection("events").doc(id).update({
+      people: data.people
+    });
   });
 }
+
 </script>
 
 </body>
