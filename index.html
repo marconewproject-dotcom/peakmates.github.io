@@ -5,6 +5,7 @@
 <title>Peakmates</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 
 <style>
 body {
@@ -14,15 +15,12 @@ body {
   color: #f1f5f9;
 }
 
-/* HEADER */
 header {
   padding: 20px;
   text-align: center;
   background: rgba(0,0,0,0.4);
-  backdrop-filter: blur(10px);
 }
 
-/* HERO */
 .hero {
   padding: 80px 20px;
   text-align: center;
@@ -31,29 +29,20 @@ header {
   background-position: center;
 }
 
-.hero h1 {
-  font-size: 42px;
-}
-
-/* CONTAINER */
 .container {
   max-width: 900px;
   margin: auto;
   padding: 20px;
 }
 
-/* CARD */
 .card {
   background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.08);
   padding: 18px;
   margin-top: 18px;
   border-radius: 16px;
-  backdrop-filter: blur(10px);
-  animation: fadeUp 0.6s ease;
+  animation: fadeUp 0.5s ease;
 }
 
-/* INPUT */
 input, select, textarea {
   width: 100%;
   margin: 6px 0;
@@ -62,33 +51,23 @@ input, select, textarea {
   border: none;
 }
 
-/* BUTTON */
 button {
   padding: 10px;
   background: #22c55e;
   border: none;
   border-radius: 10px;
   cursor: pointer;
-  transition: 0.2s;
 }
 
 button:hover {
   transform: scale(1.05);
-  background: #16a34a;
 }
 
-/* BADGE */
-.badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-size: 12px;
-}
+.badge { padding:4px 8px; border-radius:6px; }
+.facile { background:green; }
+.medio { background:orange; }
+.difficile { background:red; }
 
-.facile { background: green; }
-.medio { background: orange; }
-.difficile { background: red; }
-
-/* ANIMAZIONE */
 @keyframes fadeUp {
   from {opacity:0; transform:translateY(20px);}
   to {opacity:1; transform:translateY(0);}
@@ -99,24 +78,23 @@ button:hover {
 <body>
 
 <header>
-  <h2>🏔️ Peakmates</h2>
+<h2>🏔️ Peakmates</h2>
 </header>
 
 <div class="hero">
-  <h1>Vivi la montagna. Insieme.</h1>
-  <p>Trekking • Bivacchi • Ferrate • Scalate</p>
+<h1>Vivi la montagna insieme</h1>
 </div>
+
+<div id="map" style="height:300px;"></div>
 
 <div class="container">
 
-<!-- LOGIN -->
 <div class="card">
-<h3>Accedi</h3>
+<h3>Login</h3>
 <input id="username" placeholder="Nome">
 <button onclick="login()">Entra</button>
 </div>
 
-<!-- ADMIN -->
 <div class="card" id="adminPanel" style="display:none">
 <h3>👑 Crea evento</h3>
 
@@ -133,22 +111,23 @@ button:hover {
 <input id="participants" placeholder="Numero max">
 <textarea id="gear" placeholder="Attrezzatura"></textarea>
 
+<input id="lat" placeholder="Latitudine">
+<input id="lng" placeholder="Longitudine">
+
 <button onclick="createEvent()">Crea evento</button>
 </div>
 
-<h2>📅 Eventi</h2>
+<h2>Eventi</h2>
 <div id="events"></div>
 
 </div>
 
-<!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
-
-/* CONFIG FIREBASE */
 const firebaseConfig = {
   apiKey: "AIzaSyDwIspMkTPdAdMFQxLx_XxPJ8v6aD-vdZg",
   authDomain: "peakmatesproject.firebaseapp.com",
@@ -159,21 +138,17 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
-
 const db = firebase.firestore();
 const auth = firebase.auth();
 
-/* ADMIN UID (INSERISCI DOPO) */
 const ADMIN_UID = "INSERISCI_QUI_UID";
 
-/* UTENTE */
 let currentUser = null;
 let username = "";
 
-/* LOGIN ANONIMO AUTOMATICO */
+/* LOGIN ANONIMO */
 auth.signInAnonymously();
 
-/* CONTROLLO UTENTE */
 auth.onAuthStateChanged(user => {
   currentUser = user;
 
@@ -187,6 +162,11 @@ function login(){
   username = document.getElementById("username").value;
   alert("Benvenuto " + username);
 }
+
+/* MAPPA */
+let map = L.map('map').setView([45.9, 9.4], 8);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
 /* CREA EVENTO */
 function createEvent(){
@@ -202,6 +182,8 @@ function createEvent(){
     difficulty: difficulty.value,
     max: participants.value,
     gear: gear.value,
+    lat: parseFloat(lat.value),
+    lng: parseFloat(lng.value),
     people: []
   });
 }
@@ -214,31 +196,49 @@ db.collection("events").onSnapshot(snapshot => {
   snapshot.forEach(doc => {
     const e = doc.data();
 
+    if(e.lat && e.lng){
+      L.marker([e.lat, e.lng]).addTo(map).bindPopup(e.title);
+    }
+
     container.innerHTML += `
     <div class="card">
       <h3>${e.title}</h3>
-      <p>📍 ${e.place}</p>
-      <p>📅 ${e.date}</p>
+      <p>${e.place} - ${e.date}</p>
+      <span class="badge ${e.difficulty}">${e.difficulty}</span>
+      <p>${e.gear}</p>
+      <p>${e.people.length}/${e.max}</p>
 
-      <span class="badge ${e.difficulty}">
-        ${e.difficulty.toUpperCase()}
-      </span>
+      <input id="name-${doc.id}" placeholder="Nome">
+      <button onclick="joinEvent('${doc.id}', ${e.max})">Partecipa</button>
 
-      <p>🎒 ${e.gear}</p>
-      <p>👥 ${e.people.length}/${e.max}</p>
+      <div>${e.people.join(", ")}</div>
 
-      <input placeholder="Nome" id="name-${doc.id}">
-      <button onclick="joinEvent('${doc.id}', ${e.max})">
-        Partecipa
-      </button>
-
-      <p>${e.people.join(", ")}</p>
+      <h4>Chat</h4>
+      <input id="msg-${doc.id}" placeholder="Messaggio">
+      <button onclick="sendMessage('${doc.id}')">Invia</button>
+      <div id="chat-${doc.id}"></div>
     </div>
     `;
+
+    db.collection("events")
+      .doc(doc.id)
+      .collection("chat")
+      .orderBy("time")
+      .onSnapshot(chatSnap => {
+        const chatBox = document.getElementById(`chat-${doc.id}`);
+        if(!chatBox) return;
+        chatBox.innerHTML = "";
+
+        chatSnap.forEach(msg => {
+          const m = msg.data();
+          chatBox.innerHTML += `<p><b>${m.user}:</b> ${m.text}</p>`;
+        });
+      });
+
   });
 });
 
-/* PARTECIPA */
+/* JOIN */
 function joinEvent(id, max){
   const name = document.getElementById(`name-${id}`).value || username || "Anonimo";
 
@@ -258,6 +258,19 @@ function joinEvent(id, max){
   });
 }
 
+/* CHAT */
+function sendMessage(eventId){
+  const text = document.getElementById(`msg-${eventId}`).value;
+
+  db.collection("events")
+    .doc(eventId)
+    .collection("chat")
+    .add({
+      text: text,
+      user: username || "Anonimo",
+      time: Date.now()
+    });
+}
 </script>
 
 </body>
